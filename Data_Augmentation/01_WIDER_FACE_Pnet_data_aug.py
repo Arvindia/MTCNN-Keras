@@ -5,7 +5,7 @@ Created on Wed Jul 17 16:26:07 2019
 @author: TMaysGGS
 """
 
-'''Last updated on 09/23/2019 16:50'''
+'''Last updated on 11/20/2019 01:10'''
 import sys
 import os
 import cv2 
@@ -187,7 +187,7 @@ for i in range(len(info)):
                 
                 img_name = os.path.join('pos', str(pos_idx) + '.jpg') 
                 label = 1
-                roi = np.array([offset_x1, offset_x2, offset_y1, offset_y2]) 
+                roi = np.array([offset_x1, offset_y1, offset_x2, offset_y2]) 
                 landmark = np.array([-1] * 12)
                 
                 pos_list.append([img_name, label, roi, landmark]) 
@@ -210,7 +210,7 @@ for i in range(len(info)):
                 
                 img_name = os.path.join('part', str(part_idx) + '.jpg') 
                 label = -1
-                roi = np.array([offset_x1, offset_x2, offset_y1, offset_y2]) 
+                roi = np.array([offset_x1, offset_y1, offset_x2, offset_y2]) 
                 landmark = np.array([-1] * 12)
                 
                 part_list.append([img_name, label, roi, landmark]) 

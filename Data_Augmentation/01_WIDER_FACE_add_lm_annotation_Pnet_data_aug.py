@@ -5,7 +5,7 @@ Created on Wed Jul 17 16:26:07 2019
 @author: TMaysGGS
 """
 
-'''Last updated on 11/04/2019 20:25'''
+'''Last updated on 11/20/2019 01:08'''
 import sys
 import os
 import cv2 
@@ -13,10 +13,10 @@ import pickle as pkl
 import numpy as np
 
 sys.path.append("..")
-from utils import IoU
+from utils import IoU, rect2square
 
 IMG_SIZE = 12 
-BASE_NUM = 2  
+BASE_NUM = 1  
 PROB_THRESH = 0.15 
 IMG_DIR = r'../Data/wider_face_add_lm_10_10/JPEGImages'
 RECORD_PATH = r'../Data/wider_face_add_lm_10_10/wider_face_add_lm_10_10_info.pkl'
@@ -190,7 +190,7 @@ for i in range(len(info)):
                 
                 processed_img_name = os.path.join('pos', str(pos_idx) + '.jpg') 
                 label = 1
-                roi = np.array([offset_x1, offset_x2, offset_y1, offset_y2]) 
+                roi = np.array([offset_x1, offset_y1, offset_x2, offset_y2]) 
                 landmark = np.array([-1] * 12)
                 
                 pos_list.append([processed_img_name, label, roi, landmark]) 
@@ -213,7 +213,7 @@ for i in range(len(info)):
                 
                 processed_img_name = os.path.join('part', str(part_idx) + '.jpg') 
                 label = -1
-                roi = np.array([offset_x1, offset_x2, offset_y1, offset_y2]) 
+                roi = np.array([offset_x1, offset_y1, offset_x2, offset_y2]) 
                 landmark = np.array([-1] * 12)
                 
                 part_list.append([processed_img_name, label, roi, landmark]) 
