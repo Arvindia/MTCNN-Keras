@@ -6,7 +6,7 @@ Created on Mon Jun  3 01:57:30 2019
 @author: tmaysggs
 """
 
-'''Last updated on 08/15/2019 00:39'''
+'''Last updated on 12/03/2019 14:47'''
 import cv2
 import numpy as np
 
@@ -84,14 +84,14 @@ def calculate_scales(img):
     h, w, c = temp.shape
     
     # 过大的图片按比例缩小到窄边为500
-    if min(h, w) > 500:
-        scale = 500.0 / min(h, w)
+    if min(h, w) > 500.0: 
+        scale = 500.0 / min(h, w) 
         h = int(h * scale)
         w = int(w * scale)
     
     # 过小的图片按比例扩大到长边为500
-    elif max(w, h) < 500:
-        scale = 500.0 / max(h, w)
+    elif max(w, h) < 500.0: 
+        scale = 500.0 / max(h, w) 
         h = int(h * scale)
         w = int(w * scale)
     
@@ -108,7 +108,7 @@ def calculate_scales(img):
     return scales
 
 '''非极大值抑制：将每个置信度非最高的候选框同置信度最高的候选框比较计算IoU（或IoM）,剔除IoU高于threshold的候选框'''
-def NMS(rectangles, threshold, type): # 此处threshold与用于NMS前置任务挑选候选框时所用的threshold无关！！！
+def NMS(rectangles, threshold, nms_type): # 此处threshold与用于NMS前置任务挑选候选框时所用的threshold无关！！！
     
     if len(rectangles) == 0:
         return rectangles
@@ -139,7 +139,7 @@ def NMS(rectangles, threshold, type): # 此处threshold与用于NMS前置任务�
         # 计算交集
         intersection = inter_w * inter_h
         
-        if type == 'iom': # Intersection over the area of the smallest box (minimum) rather than IoU
+        if nms_type == 'iom': # Intersection over the area of the smallest box (minimum) rather than IoU
             o = intersection / np.minimum(true_area[score_order[-1]], true_area[score_order[0: -1]])
         else: # IoU 
             o = intersection / (true_area[score_order[-1]] + true_area[score_order[0: -1]] - intersection)
