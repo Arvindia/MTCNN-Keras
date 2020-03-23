@@ -5,7 +5,7 @@ Created on Wed Jul 17 16:26:07 2019
 @author: TMaysGGS
 """
 
-'''Last updated on 11/20/2019 01:08'''
+'''Last updated on 2020.03.23 13:10'''
 import sys
 import os
 import cv2 
@@ -13,10 +13,10 @@ import pickle as pkl
 import numpy as np
 
 sys.path.append("..")
-from utils import IoU, rect2square
+from utils import IoU
 
 IMG_SIZE = 12 
-BASE_NUM = 1  
+BASE_NUM = 1 
 PROB_THRESH = 0.15 
 IMG_DIR = r'../Data/wider_face_add_lm_10_10/JPEGImages'
 RECORD_PATH = r'../Data/wider_face_add_lm_10_10/wider_face_add_lm_10_10_info.pkl'
@@ -29,17 +29,17 @@ pos_save_dir = r'../Data/' + str(IMG_SIZE) + '/pos'
 part_save_dir = r'../Data/' + str(IMG_SIZE) + '/part' 
 neg_save_dir = r'../Data/' + str(IMG_SIZE) + '/neg' 
 if not os.path.exists(save_dir): 
-    os.mkdir(save_dir)
+    os.mkdir(save_dir) 
 if not os.path.exists(pos_save_dir): 
-    os.mkdir(pos_save_dir)
+    os.mkdir(pos_save_dir) 
 if not os.path.exists(part_save_dir): 
-    os.mkdir(part_save_dir)
+    os.mkdir(part_save_dir) 
 if not os.path.exists(neg_save_dir): 
-    os.mkdir(neg_save_dir)
+    os.mkdir(neg_save_dir) 
 
 neg_idx = 0 
 pos_idx = 0 
-part_idx = 0
+part_idx = 0 
 
 neg_list = [] 
 pos_list = [] 
@@ -50,7 +50,7 @@ for i in range(len(info)):
     
     img_name = pic_info[0] 
     img = cv2.imread(os.path.join(IMG_DIR, img_name)) 
-    height, width, channel = img.shape
+    height, width, depth = img.shape
     
     probs = np.array(pic_info[1]) # total bounding boxes in one picture 
     bboxes = np.array(pic_info[2])
@@ -67,14 +67,14 @@ for i in range(len(info)):
         new_size = np.random.randint(IMG_SIZE, min(width, height) / 2) 
         new_x1 = np.random.randint(0, width - new_size) 
         new_y1 = np.random.randint(0, height - new_size) 
-        new_x2 = new_x1 + new_size 
-        new_y2 = new_y1 + new_size 
+        new_x2 = new_x1 + new_size - 1
+        new_y2 = new_y1 + new_size - 1
         crop_box = np.array([new_x1, new_y1, new_x2, new_y2]) 
         iou = IoU(crop_box, bboxes) 
         
         if np.max(iou) < 0.3: 
             
-            cropped_img = img[new_y1: new_y2, new_x1: new_x2] 
+            cropped_img = img[new_y1: new_y2 + 1, new_x1: new_x2 + 1] 
             resized_img = cv2.resize(cropped_img, (IMG_SIZE, IMG_SIZE), interpolation = cv2.INTER_LINEAR) 
             saving_path = os.path.join(neg_save_dir, str(neg_idx) + '.jpg') 
             success = cv2.imwrite(saving_path, resized_img)
@@ -91,21 +91,21 @@ for i in range(len(info)):
             neg_num = neg_num + 1
             neg_idx = neg_idx + 1 
             
-    for j in range(len(bboxes)):
+    for j in range(len(bboxes)): 
         
-        bbox = bboxes[j]
-        x1, y1, x2, y2 = np.squeeze(bbox)
-        w = x2 - x1 + 1
+        bbox = bboxes[j] 
+        x1, y1, x2, y2 = np.squeeze(bbox) 
+        w = x2 - x1 + 1 
         h = y2 - y1 + 1 
-        prob = probs[j]
+        prob = probs[j] 
         
         # Drop the box that exceeds the boundary or is too small 
         if max(w, h) < 40 or x1 < 0 or y1 < 0 or prob < PROB_THRESH: 
             continue 
         
         # Generate negative samples around face area 
-        neg_num = 0
-        accident_control = 0
+        neg_num = 0 
+        accident_control = 0 
         while neg_num < 10 * BASE_NUM: # 6
             
             # Avoid dead loop for some faces around the corner 
@@ -117,8 +117,8 @@ for i in range(len(info)):
             delta_y = np.random.randint(max(-new_size, -y1), h) 
             new_x1 = int(max(0, x1 + delta_x)) 
             new_y1 = int(max(0, y1 + delta_y)) 
-            new_x2 = new_x1 + new_size 
-            new_y2 = new_y1 + new_size 
+            new_x2 = new_x1 + new_size - 1 
+            new_y2 = new_y1 + new_size - 1 
             
             if new_x2 > width or new_y2 > height: 
                 accident_control = accident_control + 1 
@@ -131,7 +131,7 @@ for i in range(len(info)):
             
             if np.max(iou) < 0.3: 
                 
-                cropped_img = img[new_y1: new_y2, new_x1: new_x2] 
+                cropped_img = img[new_y1: new_y2 + 1, new_x1: new_x2 + 1] 
                 resized_img = cv2.resize(cropped_img, (IMG_SIZE, IMG_SIZE), interpolation = cv2.INTER_LINEAR) 
                 saving_path = os.path.join(neg_save_dir, str(neg_idx) + '.jpg') 
                 success = cv2.imwrite(saving_path, resized_img) 
@@ -149,7 +149,7 @@ for i in range(len(info)):
 
         # Generate positive & part-face samples 
         pos_part_num = 0 
-        accident_control = 0
+        accident_control = 0 
         while pos_part_num < 40 * BASE_NUM: # 25
             
             if accident_control > 20: 
@@ -164,19 +164,19 @@ for i in range(len(info)):
             delta_y = np.random.randint(-h * 0.2 - 1, h * 0.2 + 1) 
             new_x1 = int(max(x1 + w / 2 - new_size / 2 + delta_x, 0)) 
             new_y1 = int(max(y1 + h / 2 - new_size / 2 + delta_y, 0)) 
-            new_x2 = new_x1 + new_size 
-            new_y2 = new_y1 + new_size 
+            new_x2 = new_x1 + new_size - 1 
+            new_y2 = new_y1 + new_size - 1 
             
             if new_x2 > width or new_y2 > height: 
                 accident_control = accident_control + 1
                 continue 
             
-            crop_box = np.array([new_x1, new_y1, new_x2, new_y2]) 
+            crop_box = np.array([new_x1, new_y1 + 1, new_x2, new_y2 + 1]) 
             iou = IoU(crop_box, bbox.reshape(1, -1)) # bbox is one of bboxes so it has the shape (4, ) and needs to be reshape to (1, 4)  
             
             if iou >= 0.65: 
                 
-                cropped_img = img[new_y1: new_y2, new_x1: new_x2] 
+                cropped_img = img[new_y1: new_y2 + 1, new_x1: new_x2 + 1] 
                 resized_img = cv2.resize(cropped_img, (IMG_SIZE, IMG_SIZE), interpolation = cv2.INTER_LINEAR) 
                 offset_x1 = (x1 - new_x1) / float(new_size) 
                 offset_y1 = (y1 - new_y1) / float(new_size) 
@@ -199,7 +199,7 @@ for i in range(len(info)):
                 
             elif iou >= 0.4: 
                 
-                cropped_img = img[new_y1: new_y2, new_x1: new_x2] 
+                cropped_img = img[new_y1: new_y2 + 1, new_x1: new_x2 + 1] 
                 resized_img = cv2.resize(cropped_img, (IMG_SIZE, IMG_SIZE), interpolation = cv2.INTER_LINEAR) 
                 offset_x1 = (x1 - new_x1) / float(new_size) 
                 offset_y1 = (y1 - new_y1) / float(new_size) 

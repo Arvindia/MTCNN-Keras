@@ -5,12 +5,12 @@ Created on Sun Aug 11 01:54:14 2019
 @author: TMaysGGS
 """
 
-'''Last updated on 11/09/2019 14:26'''
+'''Last updated on 2020.03.23 10:45'''
 import argparse
 import sys
 import os
 import cv2
-# import random
+import random
 import pickle as pkl
 import numpy as np
 
@@ -32,8 +32,8 @@ def main(args):
     if not os.path.exists(landmark_save_dir): 
         os.mkdir(landmark_save_dir)
     
-    f= open(RECORD_PATH, 'rb') 
-    info = pkl.load(f) 
+    f = open(RECORD_PATH, 'rb')
+    info = pkl.load(f)
     f.close()
     
     idx = 0
@@ -50,7 +50,7 @@ def main(args):
         print(str(idx) + " images generated. ")
         
         image = cv2.imread(os.path.join('../Data/CelebA/Img/img_celeba', image_name))
-        height, width, channel = image.shape
+        height, width, depth = image.shape
         
         # Crop out the face area
         x1, y1, x2, y2 = roi
@@ -69,7 +69,7 @@ def main(args):
         cv2.imshow('t', temp)
         cv2.waitKey()
         cv2.destroyAllWindows() # Verified
-        del temp
+        del k, temp
         '''
         # Save the resized face image
         resized_face = cv2.resize(face, (IMG_SIZE, IMG_SIZE), interpolation = cv2.INTER_LINEAR)
@@ -113,7 +113,7 @@ def main(args):
             continue
         
         # Augment the cropped face
-        for j in range(10):
+        for j in range(20):
             
             # Randomly pick a new size & shifts
             new_size = np.random.randint(int(min(w, h) * 0.8), np.ceil(max(w, h) * 1.25)) # new_size = width/height - 1
@@ -160,135 +160,136 @@ def main(args):
                 idx = idx + 1
                 
                 # Mirror 
-                # if random.choice([0,1]) == 1:
-                flipped_image, flipped_landmark = flip(cropped_image, transfered_landmark)
-                '''Verify
-                temp = flipped_image.copy()
-                for k in range(6):
-                    cv2.circle(temp, (int(flipped_landmark[k][0] * new_size), int(flipped_landmark[k][1] * new_size)), 2, (0, 255, 0), 1)
-                    cv2.imshow('t', temp)
-                    cv2.waitKey()
-                    cv2.destroyAllWindows() # Verified
-                del temp
-                '''
-                resized_image = cv2.resize(flipped_image, (IMG_SIZE, IMG_SIZE), interpolation = cv2.INTER_LINEAR)
-                saving_name = str(idx) + '.jpg'
-                saving_path = os.path.join(landmark_save_dir, saving_name)
-                success = cv2.imwrite(saving_path, resized_image)
-                if not success:
-                    raise Exception("Landmark picture " + str(idx) + " saving failed. ")
-                aug_list.append(['landmark/' + saving_name, 
-                                 -2, 
-                                 np.array([-1, -1, -1, -1]), 
-                                 np.squeeze(np.array(flipped_landmark.reshape(1, -1)))])
-                idx = idx + 1
+                if random.choice([0,1]) == 1:
+                    
+                    flipped_image, flipped_landmark = flip(cropped_image, transfered_landmark)
+                    '''Verify
+                    temp = flipped_image.copy()
+                    for k in range(6):
+                        cv2.circle(temp, (int(flipped_landmark[k][0] * new_size), int(flipped_landmark[k][1] * new_size)), 2, (0, 255, 0), 1)
+                        cv2.imshow('t', temp)
+                        cv2.waitKey()
+                        cv2.destroyAllWindows() # Verified
+                    del temp
+                    '''
+                    resized_image = cv2.resize(flipped_image, (IMG_SIZE, IMG_SIZE), interpolation = cv2.INTER_LINEAR)
+                    saving_name = str(idx) + '.jpg'
+                    saving_path = os.path.join(landmark_save_dir, saving_name)
+                    success = cv2.imwrite(saving_path, resized_image)
+                    if not success:
+                        raise Exception("Landmark picture " + str(idx) + " saving failed. ")
+                    aug_list.append(['landmark/' + saving_name, 
+                                     -2, 
+                                     np.array([-1, -1, -1, -1]), 
+                                     np.squeeze(np.array(flipped_landmark.reshape(1, -1)))])
+                    idx = idx + 1
                 
                 # Anti-Clockwise Rotate 
-                # if random.choice([0,1]) == 1:
-                # a. Anti-clockwise rotate
-                theta = np.random.randint(5, 15)
-                rotated_face, rotated_landmark = rotate(image, crop_box, landmark, theta) # rotated_landmark here has not been transfered yet! 
-                resized_rotated_face = cv2.resize(rotated_face, (IMG_SIZE, IMG_SIZE), interpolation = cv2.INTER_LINEAR)
-                transfered_rotated_landmark = np.zeros((6, 2))
-                for k in range(6):
-                    transfered_rotated_landmark[k][0] = (rotated_landmark[k][0] - new_x1) / new_size
-                    transfered_rotated_landmark[k][1] = (rotated_landmark[k][1] - new_y1) / new_size
-                '''Verify
-                temp = rotated_face.copy()
-                for k in range(6):
-                    cv2.circle(temp, (int(transfered_rotated_landmark[k][0] * new_size), int(transfered_rotated_landmark[k][1] * new_size)), 2, (0, 255, 0), 1)
-                    cv2.imshow('t', temp)
-                    cv2.waitKey()
-                    cv2.destroyAllWindows() # Verified
-                del temp
-                '''
-                saving_name = str(idx) + '.jpg'
-                saving_path = os.path.join(landmark_save_dir, saving_name)
-                success = cv2.imwrite(saving_path, resized_rotated_face)
-                if not success:
-                    raise Exception("Landmark picture " + str(idx) + " saving failed. ")
-                aug_list.append(['landmark/' + saving_name, 
-                                 -2, 
-                                 np.array([-1, -1, -1, -1]), 
-                                 np.squeeze(np.array(transfered_rotated_landmark.reshape(1, -1)))])
-                idx = idx + 1
+                if random.choice([0,1]) == 1:
+                    # a. Anti-clockwise rotate
+                    theta = np.random.randint(5, 15)
+                    rotated_face, rotated_landmark = rotate(image, crop_box, landmark, theta) # rotated_landmark here has not been transfered yet! 
+                    resized_rotated_face = cv2.resize(rotated_face, (IMG_SIZE, IMG_SIZE), interpolation = cv2.INTER_LINEAR)
+                    transfered_rotated_landmark = np.zeros((6, 2))
+                    for k in range(6):
+                        transfered_rotated_landmark[k][0] = (rotated_landmark[k][0] - new_x1) / new_size
+                        transfered_rotated_landmark[k][1] = (rotated_landmark[k][1] - new_y1) / new_size
+                    '''Verify
+                    temp = rotated_face.copy()
+                    for k in range(6):
+                        cv2.circle(temp, (int(transfered_rotated_landmark[k][0] * new_size), int(transfered_rotated_landmark[k][1] * new_size)), 2, (0, 255, 0), 1)
+                        cv2.imshow('t', temp)
+                        cv2.waitKey()
+                        cv2.destroyAllWindows() # Verified
+                    del temp
+                    '''
+                    saving_name = str(idx) + '.jpg'
+                    saving_path = os.path.join(landmark_save_dir, saving_name)
+                    success = cv2.imwrite(saving_path, resized_rotated_face)
+                    if not success:
+                        raise Exception("Landmark picture " + str(idx) + " saving failed. ")
+                    aug_list.append(['landmark/' + saving_name, 
+                                     -2, 
+                                     np.array([-1, -1, -1, -1]), 
+                                     np.squeeze(np.array(transfered_rotated_landmark.reshape(1, -1)))])
+                    idx = idx + 1
+                    
+                    # b. Anti-clockwise rotate & mirror
+                    flipped_rotated_face, flipped_transfered_rotated_landmark = flip(rotated_face, transfered_rotated_landmark)
+                    '''Verify
+                    temp = flipped_rotated_face.copy()
+                    for k in range(6):
+                        cv2.circle(temp, (int(flipped_transfered_rotated_landmark[k][0] * new_size), int(flipped_transfered_rotated_landmark[k][1] * new_size)), 2, (0, 255, 0), 1)
+                        cv2.imshow('t', temp)
+                        cv2.waitKey()
+                        cv2.destroyAllWindows() # Verified
+                    del temp
+                    '''
+                    resized_flipped_rotated_face = cv2.resize(flipped_rotated_face, (IMG_SIZE, IMG_SIZE), interpolation = cv2.INTER_LINEAR)
+                    saving_name = str(idx) + '.jpg'
+                    saving_path = os.path.join(landmark_save_dir, saving_name)
+                    success = cv2.imwrite(saving_path, resized_flipped_rotated_face)
+                    if not success:
+                        raise Exception("Landmark picture " + str(idx) + " saving failed. ")
+                    aug_list.append(['landmark/' + saving_name, 
+                                     -2, 
+                                     np.array([-1, -1, -1, -1]), 
+                                     np.squeeze(np.array(flipped_transfered_rotated_landmark.reshape(1, -1)))])
+                    idx = idx + 1
                 
-                # b. Anti-clockwise rotate & mirror
-                flipped_rotated_face, flipped_transfered_rotated_landmark = flip(rotated_face, transfered_rotated_landmark)
-                '''Verify
-                temp = flipped_rotated_face.copy()
-                for k in range(6):
-                    cv2.circle(temp, (int(flipped_transfered_rotated_landmark[k][0] * new_size), int(flipped_transfered_rotated_landmark[k][1] * new_size)), 2, (0, 255, 0), 1)
-                    cv2.imshow('t', temp)
-                    cv2.waitKey()
-                    cv2.destroyAllWindows() # Verified
-                del temp
-                '''
-                resized_flipped_rotated_face = cv2.resize(flipped_rotated_face, (IMG_SIZE, IMG_SIZE), interpolation = cv2.INTER_LINEAR)
-                saving_name = str(idx) + '.jpg'
-                saving_path = os.path.join(landmark_save_dir, saving_name)
-                success = cv2.imwrite(saving_path, resized_flipped_rotated_face)
-                if not success:
-                    raise Exception("Landmark picture " + str(idx) + " saving failed. ")
-                aug_list.append(['landmark/' + saving_name, 
-                                 -2, 
-                                 np.array([-1, -1, -1, -1]), 
-                                 np.squeeze(np.array(flipped_transfered_rotated_landmark.reshape(1, -1)))])
-                idx = idx + 1
-            
                 # Clockwise Rotate 
-                # if random.choice([0,1]) == 1:
-                # a. Clockwise rotate
-                theta = np.random.randint(5, 15)
-                rotated_face, rotated_landmark = rotate(image, crop_box, landmark, -theta) # rotated_landmark here has not been transfered yet! 
-                resized_rotated_face = cv2.resize(rotated_face, (IMG_SIZE, IMG_SIZE), interpolation = cv2.INTER_LINEAR)
-                transfered_rotated_landmark = np.zeros((6, 2))
-                for k in range(6):
-                    transfered_rotated_landmark[k][0] = (rotated_landmark[k][0] - new_x1) / new_size
-                    transfered_rotated_landmark[k][1] = (rotated_landmark[k][1] - new_y1) / new_size
-                '''Verify
-                temp = rotated_face.copy()
-                for k in range(6):
-                    cv2.circle(temp, (int(transfered_rotated_landmark[k][0] * new_size), int(transfered_rotated_landmark[k][1] * new_size)), 2, (0, 255, 0), 1)
-                    cv2.imshow('t', temp)
-                    cv2.waitKey()
-                    cv2.destroyAllWindows() # Verified
-                del temp
-                '''
-                saving_name = str(idx) + '.jpg'
-                saving_path = os.path.join(landmark_save_dir, saving_name)
-                success = cv2.imwrite(saving_path, resized_rotated_face)
-                if not success:
-                    raise Exception("Landmark picture " + str(idx) + " saving failed. ")
-                aug_list.append(['landmark/' + saving_name, 
-                                 -2, 
-                                 np.array([-1, -1, -1, -1]), 
-                                 np.squeeze(np.array(transfered_rotated_landmark.reshape(1, -1)))])
-                idx = idx + 1
+                if random.choice([0,1]) == 1:
+                    # a. Clockwise rotate
+                    theta = np.random.randint(5, 15)
+                    rotated_face, rotated_landmark = rotate(image, crop_box, landmark, -theta) # rotated_landmark here has not been transfered yet! 
+                    resized_rotated_face = cv2.resize(rotated_face, (IMG_SIZE, IMG_SIZE), interpolation = cv2.INTER_LINEAR)
+                    transfered_rotated_landmark = np.zeros((6, 2))
+                    for k in range(6):
+                        transfered_rotated_landmark[k][0] = (rotated_landmark[k][0] - new_x1) / new_size
+                        transfered_rotated_landmark[k][1] = (rotated_landmark[k][1] - new_y1) / new_size
+                    '''Verify
+                    temp = rotated_face.copy()
+                    for k in range(6):
+                        cv2.circle(temp, (int(transfered_rotated_landmark[k][0] * new_size), int(transfered_rotated_landmark[k][1] * new_size)), 2, (0, 255, 0), 1)
+                        cv2.imshow('t', temp)
+                        cv2.waitKey()
+                        cv2.destroyAllWindows() # Verified
+                    del temp
+                    '''
+                    saving_name = str(idx) + '.jpg'
+                    saving_path = os.path.join(landmark_save_dir, saving_name)
+                    success = cv2.imwrite(saving_path, resized_rotated_face)
+                    if not success:
+                        raise Exception("Landmark picture " + str(idx) + " saving failed. ")
+                    aug_list.append(['landmark/' + saving_name, 
+                                     -2, 
+                                     np.array([-1, -1, -1, -1]), 
+                                     np.squeeze(np.array(transfered_rotated_landmark.reshape(1, -1)))])
+                    idx = idx + 1
+                    
+                    # b. Clockwise rotate & mirror
+                    flipped_rotated_face, flipped_transfered_rotated_landmark = flip(rotated_face, transfered_rotated_landmark)
+                    '''Verify
+                    temp = flipped_rotated_face.copy()
+                    for k in range(6):
+                        cv2.circle(temp, (int(flipped_transfered_rotated_landmark[k][0] * new_size), int(flipped_transfered_rotated_landmark[k][1] * new_size)), 2, (0, 255, 0), 1)
+                        cv2.imshow('t', temp)
+                        cv2.waitKey()
+                        cv2.destroyAllWindows() # Verified
+                    del temp
+                    '''
+                    resized_flipped_rotated_face = cv2.resize(flipped_rotated_face, (IMG_SIZE, IMG_SIZE), interpolation = cv2.INTER_LINEAR)
+                    saving_name = str(idx) + '.jpg'
+                    saving_path = os.path.join(landmark_save_dir, saving_name)
+                    success = cv2.imwrite(saving_path, resized_flipped_rotated_face)
+                    if not success:
+                        raise Exception("Landmark picture " + str(idx) + " saving failed. ")
+                    aug_list.append(['landmark/' + saving_name, 
+                                     -2, 
+                                     np.array([-1, -1, -1, -1]), 
+                                     np.squeeze(np.array(flipped_transfered_rotated_landmark.reshape(1, -1)))])
+                    idx = idx + 1
                 
-                # b. Clockwise rotate & mirror
-                flipped_rotated_face, flipped_transfered_rotated_landmark = flip(rotated_face, transfered_rotated_landmark)
-                '''Verify
-                temp = flipped_rotated_face.copy()
-                for k in range(6):
-                    cv2.circle(temp, (int(flipped_transfered_rotated_landmark[k][0] * new_size), int(flipped_transfered_rotated_landmark[k][1] * new_size)), 2, (0, 255, 0), 1)
-                    cv2.imshow('t', temp)
-                    cv2.waitKey()
-                    cv2.destroyAllWindows() # Verified
-                del temp
-                '''
-                resized_flipped_rotated_face = cv2.resize(flipped_rotated_face, (IMG_SIZE, IMG_SIZE), interpolation = cv2.INTER_LINEAR)
-                saving_name = str(idx) + '.jpg'
-                saving_path = os.path.join(landmark_save_dir, saving_name)
-                success = cv2.imwrite(saving_path, resized_flipped_rotated_face)
-                if not success:
-                    raise Exception("Landmark picture " + str(idx) + " saving failed. ")
-                aug_list.append(['landmark/' + saving_name, 
-                                 -2, 
-                                 np.array([-1, -1, -1, -1]), 
-                                 np.squeeze(np.array(flipped_transfered_rotated_landmark.reshape(1, -1)))])
-                idx = idx + 1
-            
     # Save the augmentation list
     file = open(record_save_dir, 'wb+') 
     pkl.dump(aug_list, file)

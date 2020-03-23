@@ -5,7 +5,7 @@ Created on Wed Jul 17 16:26:07 2019
 @author: TMaysGGS
 """
 
-'''Last updated on 11/20/2019 01:10'''
+'''Last updated on 2020.03.23 13:16'''
 import sys
 import os
 import cv2 
@@ -48,7 +48,7 @@ for i in range(len(info)):
     pic_info = info[i]
     
     img = cv2.imread(pic_info[0]) 
-    height, width, channel = img.shape
+    height, width, depth = img.shape
     
     bboxes = np.array(pic_info[1]) # total bounding boxes in one picture 
     probs = np.array(pic_info[2])
