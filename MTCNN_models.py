@@ -5,17 +5,110 @@ Created on Wed Aug  7 09:59:45 2019
 @author: TMaysGGS
 """
 
-'''Last updated on 11/17/2019 13:46'''
-from tensorflow.keras.layers import Input, Conv2D, PReLU, MaxPooling2D, Reshape, Concatenate, Flatten, Dense
+'''Last updated on 04/09/2020 15:40'''
+from tensorflow.keras.layers import Input, Conv2D, BatchNormalization, PReLU, MaxPooling2D, Reshape, Concatenate, Flatten, Dense
 from tensorflow.keras.models import Model
+from tensorflow.keras.initializers import glorot_normal
+from tensorflow.keras.regularizers import l2
 
 '''P-Net'''
-def pnet(training = False, train_with_landmark = False):
+def pnet_train1(train_with_landmark = False):
     
-    if training:
-        X = Input(shape = (12, 12, 3), name = 'Pnet_input')
+    X = Input(shape = (12, 12, 3), name = 'Pnet_input')
+    
+    M = Conv2D(10, 3, strides = 1, padding = 'valid', kernel_initializer = glorot_normal, kernel_regularizer = l2(0.00001), name = 'Pnet_conv1')(X)
+    M = PReLU(shared_axes = [1, 2], name = 'Pnet_prelu1')(M)
+    M = MaxPooling2D(pool_size = 2, name = 'Pnet_maxpool1')(M) # default 'pool_size' is 2!!! 
+    
+    M = Conv2D(16, 3, strides = 1, padding = 'valid', kernel_initializer = glorot_normal, kernel_regularizer = l2(0.00001), name = 'Pnet_conv2')(M)
+    M = PReLU(shared_axes= [1, 2], name = 'Pnet_prelu2')(M)
+    
+    M = Conv2D(32, 3, strides = 1, padding = 'valid', kernel_initializer = glorot_normal, kernel_regularizer = l2(0.00001), name = 'Pnet_conv3')(M)
+    M = PReLU(shared_axes= [1, 2], name = 'Pnet_prelu3')(M)
+    
+    Classifier_conv = Conv2D(1, 1, activation = 'sigmoid', name = 'Pnet_classifier_conv', kernel_initializer = glorot_normal)(M)
+    Bbox_regressor_conv = Conv2D(4, 1, name = 'Pnet_bbox_regressor_conv', kernel_initializer = glorot_normal)(M)
+    Landmark_regressor_conv = Conv2D(12, 1, name = 'Pnet_landmark_regressor_conv', kernel_initializer = glorot_normal)(M)
+    
+    Classifier = Reshape((1, ), name = 'Pnet_classifier')(Classifier_conv)
+    Bbox_regressor = Reshape((4, ), name = 'Pnet_bbox_regressor')(Bbox_regressor_conv) 
+    if train_with_landmark: 
+        Landmark_regressor = Reshape((12, ), name = 'Pnet_landmark_regressor')(Landmark_regressor_conv)
+        Pnet_output = Concatenate()([Classifier, Bbox_regressor, Landmark_regressor]) 
+        model = Model(X, Pnet_output) 
     else:
-        X = Input(shape = (None, None, 3), name = 'Pnet_input')
+        Pnet_output = Concatenate()([Classifier, Bbox_regressor])
+        model = Model(X, Pnet_output)
+    
+    return model
+
+def pnet_train2(train_with_landmark = False):
+    
+    X = Input(shape = (12, 12, 3), name = 'Pnet_input')
+    
+    M = Conv2D(10, 3, strides = 1, padding = 'valid', use_bias = False, kernel_initializer = glorot_normal, kernel_regularizer = l2(0.00001), name = 'Pnet_conv1')(X)
+    M = BatchNormalization(axis = -1, name = 'Pnet_bn1')(M)
+    M = PReLU(shared_axes = [1, 2], name = 'Pnet_prelu1')(M)
+    M = MaxPooling2D(pool_size = 2, name = 'Pnet_maxpool1')(M) # default 'pool_size' is 2!!! 
+    
+    M = Conv2D(16, 3, strides = 1, padding = 'valid', use_bias = False, kernel_initializer = glorot_normal, kernel_regularizer = l2(0.00001), name = 'Pnet_conv2')(M)
+    M = BatchNormalization(axis = -1, name = 'Pnet_bn2')(M)
+    M = PReLU(shared_axes= [1, 2], name = 'Pnet_prelu2')(M)
+    
+    M = Conv2D(32, 3, strides = 1, padding = 'valid', use_bias = False, kernel_initializer = glorot_normal, kernel_regularizer = l2(0.00001), name = 'Pnet_conv3')(M)
+    M = BatchNormalization(axis = -1, name = 'Pnet_bn3')(M)
+    M = PReLU(shared_axes= [1, 2], name = 'Pnet_prelu3')(M)
+    
+    Classifier_conv = Conv2D(1, 1, activation = 'sigmoid', name = 'Pnet_classifier_conv', kernel_initializer = glorot_normal)(M)
+    Bbox_regressor_conv = Conv2D(4, 1, name = 'Pnet_bbox_regressor_conv', kernel_initializer = glorot_normal)(M)
+    Landmark_regressor_conv = Conv2D(12, 1, name = 'Pnet_landmark_regressor_conv', kernel_initializer = glorot_normal)(M)
+    
+    Classifier = Reshape((1, ), name = 'Pnet_classifier')(Classifier_conv)
+    Bbox_regressor = Reshape((4, ), name = 'Pnet_bbox_regressor')(Bbox_regressor_conv) 
+    if train_with_landmark: 
+        Landmark_regressor = Reshape((12, ), name = 'Pnet_landmark_regressor')(Landmark_regressor_conv)
+        Pnet_output = Concatenate()([Classifier, Bbox_regressor, Landmark_regressor]) 
+        model = Model(X, Pnet_output) 
+    else:
+        Pnet_output = Concatenate()([Classifier, Bbox_regressor])
+        model = Model(X, Pnet_output)
+    
+    return model
+
+def pnet_train3(train_with_landmark = False):
+    
+    X = Input(shape = (12, 12, 3), name = 'Pnet_input')
+    
+    M = Conv2D(10, 3, strides = 1, padding = 'valid', kernel_initializer = glorot_normal, kernel_regularizer = l2(0.00001), name = 'Pnet_conv1')(X)
+    M = PReLU(shared_axes = [1, 2], name = 'Pnet_prelu1')(M)
+    M = MaxPooling2D(pool_size = 2, name = 'Pnet_maxpool1')(M) 
+    
+    M = Conv2D(16, 3, strides = 1, padding = 'valid', kernel_initializer = glorot_normal, kernel_regularizer = l2(0.00001), name = 'Pnet_conv2')(M)
+    M = PReLU(shared_axes= [1, 2], name = 'Pnet_prelu2')(M)
+    
+    M = Conv2D(32, 3, strides = 1, padding = 'valid', kernel_initializer = glorot_normal, kernel_regularizer = l2(0.00001), name = 'Pnet_conv3')(M)
+    M = PReLU(shared_axes= [1, 2], name = 'Pnet_prelu3')(M)
+    
+    Classifier_conv = Conv2D(2, 1, activation = 'softmax', name = 'Pnet_classifier_conv', kernel_initializer = glorot_normal)(M)
+    Bbox_regressor_conv = Conv2D(4, 1, name = 'Pnet_bbox_regressor_conv', kernel_initializer = glorot_normal)(M)
+    
+    Classifier = Reshape((2, ), name = 'Pnet_classifier')(Classifier_conv)
+    Bbox_regressor = Reshape((4, ), name = 'Pnet_bbox_regressor')(Bbox_regressor_conv)
+    
+    if train_with_landmark:
+        Landmark_regressor_conv = Conv2D(12, 1, name = 'Pnet_landmark_regressor_conv', kernel_initializer = glorot_normal)(M)
+        Landmark_regressor = Reshape((12, ), name = 'Pnet_landmark_regressor')(Landmark_regressor_conv)
+        Pnet_output = Concatenate()([Classifier, Bbox_regressor, Landmark_regressor])
+    else:
+        Pnet_output = Concatenate()([Classifier, Bbox_regressor])
+    
+    model = Model(X, Pnet_output)
+    
+    return model
+
+def pnet():
+    
+    X = Input(shape = (None, None, 3), name = 'Pnet_input')
     
     M = Conv2D(10, 3, strides = 1, padding = 'valid', name = 'Pnet_conv1')(X)
     M = PReLU(shared_axes = [1, 2], name = 'Pnet_prelu1')(M)
@@ -29,20 +122,8 @@ def pnet(training = False, train_with_landmark = False):
     
     Classifier_conv = Conv2D(1, 1, activation = 'sigmoid', name = 'Pnet_classifier_conv')(M)
     Bbox_regressor_conv = Conv2D(4, 1, name = 'Pnet_bbox_regressor_conv')(M)
-    Landmark_regressor_conv = Conv2D(12, 1, name = 'Pnet_landmark_regressor_conv')(M)
     
-    if training:
-        Classifier = Reshape((1, ), name = 'Pnet_classifier')(Classifier_conv)
-        Bbox_regressor = Reshape((4, ), name = 'Pnet_bbox_regressor')(Bbox_regressor_conv) 
-        if train_with_landmark: 
-            Landmark_regressor = Reshape((12, ), name = 'Pnet_landmark_regressor')(Landmark_regressor_conv)
-            Pnet_output = Concatenate()([Classifier, Bbox_regressor, Landmark_regressor]) 
-            model = Model(X, Pnet_output) 
-        else:
-            Pnet_output = Concatenate()([Classifier, Bbox_regressor])
-            model = Model(X, Pnet_output)         
-    else:
-        model = Model(X, [Classifier_conv, Bbox_regressor_conv])
+    model = Model(X, [Classifier_conv, Bbox_regressor_conv])
     
     return model
 
@@ -81,7 +162,7 @@ def rnet(training = False, train_with_landmark = False):
     
     return model
 
-'''R-Net'''
+'''O-Net'''
 def onet(training = False):
     
     X = Input(shape = (48, 48, 3), name = 'Onet_input')

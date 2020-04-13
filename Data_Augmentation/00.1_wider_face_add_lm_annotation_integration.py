@@ -5,11 +5,12 @@ Created on Fri Nov  1 09:49:52 2019
 @author: TMaysGGS
 """
 
+"""Last updated on 2019.11.07 16:07""" 
 import os 
 import pickle as pkl 
 import xml.etree.ElementTree as ET
 
-DATA_DIR = r'./Data/wider_face_add_lm_10_10' 
+DATA_DIR = r'../Data/wider_face_add_lm_10_10' 
 IMG_DIR = os.path.join(DATA_DIR, 'JPEGImages')
 ANNOTATION_DIR = os.path.join(DATA_DIR, 'Annotations') 
 CLASS_DICT = {"BACKGROUND": 0, "face": 1} 
@@ -53,7 +54,20 @@ for img_name in img_name_list:
         
         info.append([img_name, labels, boxes, is_difficult]) 
 
-record_path = './Data/wider_face_add_lm_10_10/wider_face_add_lm_10_10_info.pkl' 
+record_path = '../Data/wider_face_add_lm_10_10/wider_face_add_lm_10_10_info.pkl' 
 file = open(record_path, 'wb+') 
 pkl.dump(info, file)
 file.close() 
+
+"""Verify the number of hard-detected faces"""
+# Actually 0 in this data set 
+import numpy as np 
+
+total_face_count = 0 
+difficult_face_count = 0
+for img_info in info:  
+    is_difficult_info = img_info[3]
+    total_face_count = total_face_count + len(is_difficult_info) 
+    difficult_face_count = difficult_face_count + np.sum(is_difficult_info) 
+    if 1 in is_difficult_info: 
+        print("1")

@@ -5,7 +5,7 @@ Created on Wed Aug  7 01:10:03 2019
 @author: TMaysGGS
 """
 
-'''Last updated on 08/07/2019 01:27'''
+'''Last updated on 2019.08.07 01:27'''
 '''Importing the libraries'''
 import pickle as pkl
 import numpy as np

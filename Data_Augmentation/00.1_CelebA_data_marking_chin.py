@@ -5,7 +5,7 @@ Created on Tue Jun 11 13:53:00 2019
 @author: TMaysGGS
 """
 
-'''Last updated on 2020.03.23 09:59'''
+'''Last updated on 2020.03.23 23:35'''
 import os
 import cv2
 import dlib
@@ -56,10 +56,10 @@ for img_name in os.listdir(image_path):
 
 # 下巴：8；左眼外眼角：36；右眼外眼角：45；鼻尖：30；左嘴角：48；右嘴角：54
 
-file = open(r'E:\Datasets\CelebA\Anno\chin_annos.pkl', 'wb+')
+file = open(r'../Data/CelebA/Anno/chin_annos.pkl', 'wb+')
 pkl.dump(annotation_list, file)
 file.close()
 
-with open('E:\Datasets\CelebA\Anno\chin_annos.pkl', 'rb') as f:
+with open('../Data/CelebA/Anno/chin_annos.pkl', 'rb') as f:
     chin_annos_loaded = pkl.load(f)
     
